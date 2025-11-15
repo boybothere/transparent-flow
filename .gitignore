@@ -1,0 +1,5 @@
+fabric-samples/
+fabric-explorer/
+node_modules/
+server-node-sdk/wallet/
+.env

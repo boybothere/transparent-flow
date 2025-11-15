@@ -1,0 +1,369 @@
+/* Basic Reset & Setup */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: #f4f7f6;
+  color: #333;
+  padding: 20px;
+}
+
+#root {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
+  color: #0056b3;
+}
+
+
+.status {
+  text-align: center;
+  font-size: 1.2rem;
+  padding: 40px;
+}
+
+.status.error {
+  color: #d9534f;
+}
+
+
+.project-card {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+}
+
+.card-header h3 {
+  margin: 0;
+}
+
+.status-badge {
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge.allocated {
+  background-color: #e0e7ff;
+  color: #4338ca;
+}
+
+.status-badge.pending {
+  background-color: #fef3c7;
+  color: #d97706;
+}
+
+.status-badge.paid {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-badge.flagged {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.status-badge.verified {
+  background-color: #c7d2fe;
+  color: #4338ca;
+}
+
+
+.milestone-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.milestone-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.milestone-list li:nth-child(odd) {
+  background-color: #f9f9f9;
+}
+
+.navbar {
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  padding: 0 20px;
+  height: 60px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 100%;
+}
+
+.nav-logo {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #0056b3;
+  text-decoration: none;
+}
+
+.nav-menu {
+  list-style: none;
+  display: flex;
+  gap: 15px;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: #555;
+  font-weight: 500;
+  padding: 8px 12px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.nav-link:hover {
+  background-color: #f4f4f4;
+}
+
+/* Main Content Area */
+.main-content {
+  padding-top: 20px;
+}
+
+/* Admin Dashboard & Forms */
+.admin-dashboard h2 {
+  color: #d9534f;
+}
+
+.admin-form {
+  background: #fff;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  max-width: 600px;
+}
+
+.admin-form h3 {
+  margin-top: 0;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 500;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  /* Important */
+}
+
+.admin-form button {
+  background-color: #d9534f;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.admin-form button:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+
+.form-message {
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.admin-forms-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* On smaller screens, stack the forms */
+@media (max-width: 900px) {
+  .admin-forms-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.contractor-dashboard h2 {
+  color: #0275d8;
+  /* Blue */
+}
+
+/* We can reuse the admin form style */
+.contractor-dashboard .admin-form button {
+  background-color: #0275d8;
+  /* Blue */
+}
+
+.button-release {
+  background-color: #5cb85c !important;
+  /* Green */
+}
+
+.button-release:disabled {
+  background-color: #aaa !important;
+}
+
+.button-flag {
+  background-color: #d9534f !important;
+  /* Red */
+}
+
+.button-flag:disabled {
+  background-color: #aaa !important;
+}
+
+.login-container {
+  max-width: 500px;
+  margin: 40px auto;
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  text-align: center;
+}
+
+.login-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.login-btn {
+  padding: 15px;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: white;
+}
+
+.login-btn.admin-btn {
+  background-color: #d9534f;
+}
+
+.login-btn.contractor-btn {
+  background-color: #0275d8;
+}
+
+
+/* Logout/Login Nav Buttons */
+.nav-button,
+.nav-link-login {
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+.nav-link-login {
+  background-color: #5cb85c;
+  color: white !important;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.nav-button {
+  background-color: #f0ad4e;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.ledger-info-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.ledger-info-container h2 {
+  text-align: center;
+  color: #0056b3;
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+}
+
+.concepts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.concept-card {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.concept-card h4 {
+  margin-top: 0;
+  color: #333;
+}
+
+.concept-card p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 700px) {
+  .concepts-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1200px) {
+  .admin-forms-container {
+    grid-template-columns: 1fr 1fr;
+  }
+}
