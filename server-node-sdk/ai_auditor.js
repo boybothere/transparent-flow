@@ -1,6 +1,7 @@
 require('dotenv').config();
 const axios = require('axios');
 const { createWorker } = require('tesseract.js');
+const https = require('https'); // <-- NEW: Import 'https' module
 
 const API_BASE_URL = 'http://localhost:3001';
 const IPFS_GATEWAY = 'https://gateway.pinata.cloud/ipfs/';
@@ -11,12 +12,19 @@ let tesseractWorker;
 let isAuditing = false;
 let authToken = null;
 
+// --- 1. The Bypass Agent ---
+const unsafeAgent = new https.Agent({
+    rejectUnauthorized: false
+});
+
 async function loginAsAuditor() {
     console.log('🤖 AI Auditor: Logging in as admin...');
     try {
         const response = await axios.post(`${API_BASE_URL}/api/auth/login`, {
             username: 'admin1',
             password: 'password123'
+        }, {
+            httpsAgent: unsafeAgent // <-- Use agent for login
         });
         authToken = response.data.token;
         console.log('🤖 AI Auditor: Login successful. Token acquired.');
@@ -29,7 +37,12 @@ async function loginAsAuditor() {
 async function downloadFile(ipfsHash) {
     const url = `${IPFS_GATEWAY}${ipfsHash}`;
     console.log(`... AI: Downloading file from ${url}`);
-    const response = await axios.get(url, { responseType: 'arraybuffer' });
+
+    const response = await axios.get(url, {
+        responseType: 'arraybuffer',
+        httpsAgent: unsafeAgent // <-- Use agent for download
+    });
+
     if (response.status !== 200) {
         throw new Error(`Failed to fetch file from IPFS: ${response.statusText}`);
     }
@@ -47,44 +60,51 @@ function cleanText(text) {
     return String(text).toLowerCase().replace(/[\s\n\r,-.:$]/g, '');
 }
 
-// --- THIS IS THE NEW, REFINED "BRAIN" ---
 function analyzeInvoiceText(ocrText, milestone, project) {
-    console.log('... AI: Analyzing extracted text...');
+    console.log('... AI: Analyzing extracted text with heuristic model...');
 
     const cleanOcrText = cleanText(ocrText || "");
     let validationErrors = [];
 
-    // --- Dynamic Data Check (No "dumb" keyword checks) ---
+    if (!cleanOcrText.includes('invoice')) {
+        validationErrors.push('Missing "invoice" keyword.');
+    }
+    if (!cleanOcrText.includes('client') && !cleanOcrText.includes('billto')) {
+        validationErrors.push('Missing "client" or "bill to" keywords.');
+    }
+    if (!cleanOcrText.includes('date')) {
+        validationErrors.push('Missing "date" keyword.');
+    }
+    if (!cleanOcrText.includes('total') && !cleanOcrText.includes('amount')) {
+        validationErrors.push('Missing "total" or "amount" keywords.');
+    }
 
-    // 1. Check for the correct payment amount
     const cleanPaymentAmount = cleanText(milestone.paymentAmount);
     if (!cleanOcrText.includes(cleanPaymentAmount)) {
         validationErrors.push(`Invoice text does not contain correct amount (${milestone.paymentAmount}).`);
     }
 
-    // 2. Check for the correct Project ID
     const cleanProjectId = cleanText(project.projectId);
     if (!cleanOcrText.includes(cleanProjectId)) {
         validationErrors.push(`Invoice text does not contain correct Project ID (${project.projectId}).`);
     }
 
-    // --- Final Verdict ---
     if (validationErrors.length > 0) {
         const reason = "AI FLAG: " + validationErrors.join(' ');
         return reason;
     }
 
-    console.log('... AI: Text analysis passed.');
+    console.log('... AI: Heuristic analysis passed.');
     return null;
 }
-// --- END OF NEW BRAIN ---
 
 async function flagMilestone(projectId, milestoneId, reason) {
     try {
         await axios.post(`${API_BASE_URL}/api/alerts/flag-ai`, {
             projectId, milestoneId, reason
         }, {
-            headers: { 'Authorization': `Bearer ${authToken}` }
+            headers: { 'Authorization': `Bearer ${authToken}` },
+            httpsAgent: unsafeAgent // Use agent for flagging
         });
         console.log(`Successfully logged AI flag for ${projectId} / ${milestoneId}`);
     } catch (error) {
@@ -98,7 +118,12 @@ async function runAudit() {
     console.log('AI Auditor: Waking up, checking for work...');
 
     try {
-        const response = await axios.get(`${API_BASE_URL}/api/projects`);
+        const apiConfig = {
+            headers: { 'Authorization': `Bearer ${authToken}` },
+            httpsAgent: unsafeAgent // Use agent for protected API calls
+        };
+
+        const response = await axios.get(`${API_BASE_URL}/api/projects`, { httpsAgent: unsafeAgent });
         const publicProjects = response.data;
         if (!publicProjects || publicProjects.length === 0) { isAuditing = false; return; }
 
@@ -110,9 +135,7 @@ async function runAudit() {
                     console.log(`AI Auditor: Found VERIFIED milestone: ${publicProject.projectId} / ${publicMilestone.milestoneId}`);
 
                     if (!fullProjectDetails) {
-                        const detailResponse = await axios.get(`${API_BASE_URL}/api/projects/${publicProject.projectId}`, {
-                            headers: { 'Authorization': `Bearer ${authToken}` }
-                        });
+                        const detailResponse = await axios.get(`${API_BASE_URL}/api/projects/${publicProject.projectId}`, apiConfig);
                         fullProjectDetails = detailResponse.data;
                     }
 
@@ -129,10 +152,10 @@ async function runAudit() {
                     const flagReason = analyzeInvoiceText(ocrText, fullMilestone, fullProjectDetails);
 
                     if (flagReason) {
-                        console.warn(`AI AUDIT FAILED! Flagging milestone... Reason: ${flagReason}`);
+                        console.warn(`🚨 AI AUDIT FAILED! Flagging milestone... Reason: ${flagReason}`);
                         await flagMilestone(fullProjectDetails.projectId, fullMilestone.milestoneId, flagReason);
                     } else {
-                        console.log(`AI AUDIT PASSED: Invoice for ${fullMilestone.milestoneId} is valid.`);
+                        console.log(`✅ AI AUDIT PASSED: Invoice for ${fullMilestone.milestoneId} is valid.`);
                     }
                 }
             }
@@ -141,7 +164,7 @@ async function runAudit() {
         console.error(`Error during audit: ${error.message}`);
     }
 
-    console.log('AI Auditor: Work complete. Sleeping...');
+    console.log('🤖 AI Auditor: Work complete. Sleeping...');
     isAuditing = false;
 }
 
@@ -153,7 +176,7 @@ async function startAuditor() {
     tesseractWorker = await createWorker('eng');
     console.log('Tesseract worker loaded.');
 
-    console.log('AI Auditor (Local Tesseract) is ready.');
+    console.log('AI Auditor (Local Tesseract Heuristic) is ready.');
 
     runAudit();
     setInterval(runAudit, CHECK_INTERVAL_MS);
