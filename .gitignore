@@ -1,5 +1,21 @@
+# Ignore Fabric stuff (never upload)
 fabric-samples/
 fabric-explorer/
+install-fabric.sh
+
+# Node and build
 node_modules/
-server-node-sdk/wallet/
+**/node_modules/
+npm-debug.log*
+
+# Environment files
 .env
+**/.env
+
+# Logs
+logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
