@@ -1,7 +1,7 @@
 require('dotenv').config();
 const axios = require('axios');
 const { createWorker } = require('tesseract.js');
-const https = require('https'); // <-- NEW: Import 'https' module
+const https = require('https'); 
 
 const API_BASE_URL = 'http://localhost:3001';
 const IPFS_GATEWAY = 'https://gateway.pinata.cloud/ipfs/';
@@ -12,9 +12,8 @@ let tesseractWorker;
 let isAuditing = false;
 let authToken = null;
 
-// --- 1. The Bypass Agent ---
 const unsafeAgent = new https.Agent({
-    rejectUnauthorized: false
+  rejectUnauthorized: false
 });
 
 async function loginAsAuditor() {
@@ -24,7 +23,7 @@ async function loginAsAuditor() {
             username: 'admin1',
             password: 'password123'
         }, {
-            httpsAgent: unsafeAgent // <-- Use agent for login
+            httpsAgent: unsafeAgent 
         });
         authToken = response.data.token;
         console.log('🤖 AI Auditor: Login successful. Token acquired.');
@@ -37,12 +36,12 @@ async function loginAsAuditor() {
 async function downloadFile(ipfsHash) {
     const url = `${IPFS_GATEWAY}${ipfsHash}`;
     console.log(`... AI: Downloading file from ${url}`);
-
+    
     const response = await axios.get(url, {
         responseType: 'arraybuffer',
-        httpsAgent: unsafeAgent // <-- Use agent for download
+        httpsAgent: unsafeAgent
     });
-
+    
     if (response.status !== 200) {
         throw new Error(`Failed to fetch file from IPFS: ${response.statusText}`);
     }
@@ -62,7 +61,7 @@ function cleanText(text) {
 
 function analyzeInvoiceText(ocrText, milestone, project) {
     console.log('... AI: Analyzing extracted text with heuristic model...');
-
+    
     const cleanOcrText = cleanText(ocrText || "");
     let validationErrors = [];
 
@@ -104,7 +103,7 @@ async function flagMilestone(projectId, milestoneId, reason) {
             projectId, milestoneId, reason
         }, {
             headers: { 'Authorization': `Bearer ${authToken}` },
-            httpsAgent: unsafeAgent // Use agent for flagging
+            httpsAgent: unsafeAgent 
         });
         console.log(`Successfully logged AI flag for ${projectId} / ${milestoneId}`);
     } catch (error) {
@@ -116,14 +115,14 @@ async function runAudit() {
     if (isAuditing) return;
     isAuditing = true;
     console.log('AI Auditor: Waking up, checking for work...');
-
+    
     try {
         const apiConfig = {
             headers: { 'Authorization': `Bearer ${authToken}` },
-            httpsAgent: unsafeAgent // Use agent for protected API calls
+            httpsAgent: unsafeAgent
         };
 
-        const response = await axios.get(`${API_BASE_URL}/api/projects`, { httpsAgent: unsafeAgent });
+        const response = await axios.get(`${API_BASE_URL}/api/projects`, apiConfig);
         const publicProjects = response.data;
         if (!publicProjects || publicProjects.length === 0) { isAuditing = false; return; }
 
@@ -133,7 +132,7 @@ async function runAudit() {
             for (const publicMilestone of publicProject.milestones) {
                 if (publicMilestone.status === 'VERIFIED') {
                     console.log(`AI Auditor: Found VERIFIED milestone: ${publicProject.projectId} / ${publicMilestone.milestoneId}`);
-
+                    
                     if (!fullProjectDetails) {
                         const detailResponse = await axios.get(`${API_BASE_URL}/api/projects/${publicProject.projectId}`, apiConfig);
                         fullProjectDetails = detailResponse.data;
@@ -163,7 +162,7 @@ async function runAudit() {
     } catch (error) {
         console.error(`Error during audit: ${error.message}`);
     }
-
+    
     console.log('🤖 AI Auditor: Work complete. Sleeping...');
     isAuditing = false;
 }
@@ -171,13 +170,13 @@ async function runAudit() {
 async function startAuditor() {
     console.log('AI Auditor Service starting...');
     await loginAsAuditor();
-
+    
     console.log('Loading Tesseract worker...');
     tesseractWorker = await createWorker('eng');
     console.log('Tesseract worker loaded.');
-
+    
     console.log('AI Auditor (Local Tesseract Heuristic) is ready.');
-
+    
     runAudit();
     setInterval(runAudit, CHECK_INTERVAL_MS);
 }
